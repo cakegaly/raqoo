@@ -69,7 +69,7 @@ function FlowCanvas() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <div className="mb-4 flex gap-4">
+      <div className="my-4 flex gap-4">
         <Button
           onClick={() =>
             setNodes((nds) =>
@@ -84,7 +84,7 @@ function FlowCanvas() {
           Add Node
         </Button>
         <Button onClick={deleteSelectedNode} disabled={!selectedNode}>
-          Delete Selected Node
+          {selectedNode ? `Delete Node ${selectedNode.id}` : "No node selected"}
         </Button>
       </div>
       <ReactFlow
