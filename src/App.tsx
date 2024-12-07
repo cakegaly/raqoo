@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useCallback, useState } from "react";
 import ReactFlow, {
+  addEdge,
   Background,
+  Connection,
+  Edge,
   Node,
   NodeMouseHandler,
   ReactFlowProvider,
@@ -16,12 +19,23 @@ function getId() {
   return `${++id}`;
 }
 
+const initialNodes: Node[] = [
+  { id: "1", data: { label: "Node 1" }, position: { x: 100, y: 100 } },
+  { id: "2", data: { label: "Node 2" }, position: { x: 300, y: 100 } },
+];
+const initialEdges: Edge[] = [];
+// const initialEdges: Edge[] = [
+//   {
+//     id: "e1-2",
+//     source: "1",
+//     target: "2",
+//     style: { stroke: "red", strokeWidth: 2 },
+//   },
+// ];
+
 function FlowCanvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState([
-    { id: "1", position: { x: 250, y: 5 }, data: { label: "Node 1" } },
-    { id: "2", position: { x: 100, y: 100 }, data: { label: "Node 2" } },
-  ]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
@@ -40,6 +54,18 @@ function FlowCanvas() {
     );
     setSelectedNode(null);
   }, [selectedNode, setNodes, setEdges]);
+
+  const handleConnect = (connection: Connection) => {
+    setEdges((eds) => addEdge(connection, eds));
+  };
+
+  const onEdgeClick = useCallback(
+    (event: React.MouseEvent, edge: Edge) => {
+      event.preventDefault();
+      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+    },
+    [setEdges]
+  );
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -67,6 +93,8 @@ function FlowCanvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
+        onConnect={handleConnect}
       >
         <Background />
       </ReactFlow>
