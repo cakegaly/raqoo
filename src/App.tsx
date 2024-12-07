@@ -1,8 +1,10 @@
+import { Button } from "@/components/ui/button";
 import { useCallback, useState } from "react";
 import ReactFlow, {
   Background,
   Node,
   NodeMouseHandler,
+  ReactFlowProvider,
   useEdgesState,
   useNodesState,
 } from "reactflow";
@@ -14,7 +16,7 @@ function getId() {
   return `${++id}`;
 }
 
-function App() {
+function FlowCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([
     { id: "1", position: { x: 250, y: 5 }, data: { label: "Node 1" } },
     { id: "2", position: { x: 100, y: 100 }, data: { label: "Node 2" } },
@@ -42,8 +44,7 @@ function App() {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <div className="mb-4 flex gap-4">
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded"
+        <Button
           onClick={() =>
             setNodes((nds) =>
               nds.concat({
@@ -55,14 +56,10 @@ function App() {
           }
         >
           Add Node
-        </button>
-        <button
-          className="px-4 py-2 bg-red-500 text-white rounded"
-          onClick={deleteSelectedNode}
-          disabled={!selectedNode}
-        >
+        </Button>
+        <Button onClick={deleteSelectedNode} disabled={!selectedNode}>
           Delete Selected Node
-        </button>
+        </Button>
       </div>
       <ReactFlow
         nodes={nodes}
@@ -74,6 +71,14 @@ function App() {
         <Background />
       </ReactFlow>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ReactFlowProvider>
+      <FlowCanvas />
+    </ReactFlowProvider>
   );
 }
 
