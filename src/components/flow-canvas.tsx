@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { useId } from "@/context/id-context";
 import { initialEdges, initialNodes } from "@/lib/data";
 import { useCallback, useState } from "react";
@@ -8,79 +7,102 @@ import ReactFlow, {
   Connection,
   Edge,
   Node,
-  NodeMouseHandler,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
 export function FlowCanvas() {
   const { getId } = useId();
-
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
-    event.preventDefault();
-    setSelectedNode(node);
-  }, []);
+  const { project } = useReactFlow();
 
-  const deleteSelectedNode = useCallback(() => {
-    if (!selectedNode) return;
-    setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
-    setEdges((eds) =>
-      eds.filter(
-        (edge) =>
-          edge.source !== selectedNode.id && edge.target !== selectedNode.id
-      )
-    );
-    setSelectedNode(null);
-  }, [selectedNode, setNodes, setEdges]);
+  const calculateChildPosition = (parentPosition: { x: number; y: number }) => {
+    const offset = 150;
+    return {
+      x: parentPosition.x + offset,
+      y: parentPosition.y,
+    };
+  };
+
+  const addChildNode = useCallback(
+    (parentNode: Node) => {
+      const newNodeId = getId();
+      const newPosition = calculateChildPosition(parentNode.position);
+
+      const newNode: Node = {
+        id: newNodeId,
+        position: newPosition,
+        data: { label: `Node ${newNodeId}` },
+      };
+
+      const newEdge: Edge = {
+        id: `edge-${parentNode.id}-${newNodeId}`,
+        source: parentNode.id,
+        target: newNodeId,
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+      setEdges((eds) => eds.concat(newEdge));
+      setSelectedNodeId(null);
+    },
+    [getId, setNodes, setEdges]
+  );
+
+  // ノード選択時の処理
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      setSelectedNodeId(node.id === selectedNodeId ? null : node.id);
+    },
+    [selectedNodeId]
+  );
 
   const handleConnect = (connection: Connection) => {
     setEdges((eds) => addEdge(connection, eds));
   };
 
-  const onEdgeClick = useCallback(
-    (event: React.MouseEvent, edge: Edge) => {
-      event.preventDefault();
-      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
-    },
-    [setEdges]
-  );
-
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="my-4 flex gap-4">
-        <Button
-          onClick={() =>
-            setNodes((nds) =>
-              nds.concat({
-                id: getId(),
-                position: { x: Math.random() * 400, y: Math.random() * 400 },
-                data: { label: `New Node` },
-              })
-            )
-          }
-        >
-          Add Node
-        </Button>
-        <Button onClick={deleteSelectedNode} disabled={!selectedNode}>
-          {selectedNode ? `Delete Node ${selectedNode.id}` : "No node selected"}
-        </Button>
-      </div>
+    <div className="flex flex-col items-center justify-center h-screen relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
-        onEdgeClick={onEdgeClick}
         onConnect={handleConnect}
       >
         <Background />
       </ReactFlow>
+
+      {selectedNodeId &&
+        nodes.map((node) =>
+          node.id === selectedNodeId ? (
+            <div
+              key={`button-container-${node.id}`}
+              className="absolute"
+              style={{
+                top: project(node.position).y - 10,
+                left: project(node.position).x + 120,
+                transform: "translate(-50%, -50%)",
+                zIndex: 10,
+              }}
+            >
+              <button
+                className="p-2 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  addChildNode(node);
+                }}
+              >
+                +
+              </button>
+            </div>
+          ) : null
+        )}
     </div>
   );
 }
