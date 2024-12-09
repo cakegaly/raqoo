@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { useId } from "@/context/id-context";
 import { initialEdges, initialNodes } from "@/lib/data";
-import { getId } from "@/lib/utils";
 import { useCallback, useState } from "react";
 import ReactFlow, {
   addEdge,
@@ -15,6 +15,8 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 export function FlowCanvas() {
+  const { getId } = useId();
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
