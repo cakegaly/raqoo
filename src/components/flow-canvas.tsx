@@ -7,6 +7,7 @@ import ReactFlow, {
   Connection,
   Edge,
   Node,
+  Position,
   useEdgesState,
   useNodesState,
   useReactFlow,
@@ -38,6 +39,8 @@ export function FlowCanvas() {
         id: newNodeId,
         position: newPosition,
         data: { label: `Node ${newNodeId}` },
+        sourcePosition: Position.Right,
+        targetPosition: Position.Left,
       };
 
       const newEdge: Edge = {
@@ -53,7 +56,6 @@ export function FlowCanvas() {
     [getId, setNodes, setEdges]
   );
 
-  // ノード選択時の処理
   const onNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
       setSelectedNodeId(node.id === selectedNodeId ? null : node.id);
