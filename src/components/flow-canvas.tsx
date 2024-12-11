@@ -24,34 +24,32 @@ export function FlowCanvas() {
 
   const calculateChildPosition = (
     parentPosition: { x: number; y: number },
-    currentChildIndex: number,
-    totalChildren: number
+    nodes: Node[]
   ) => {
     const xOffset = 200;
     const ySpacing = 100;
-    const yOffset = (currentChildIndex - (totalChildren - 1) / 2) * ySpacing;
+    let newYPosition = parentPosition.y;
+
+    while (
+      nodes.some(
+        (node) =>
+          Math.abs(node.position.x - (parentPosition.x + xOffset)) < xOffset &&
+          Math.abs(node.position.y - newYPosition) < ySpacing
+      )
+    ) {
+      newYPosition += ySpacing;
+    }
 
     return {
       x: parentPosition.x + xOffset,
-      y: parentPosition.y + yOffset,
+      y: newYPosition,
     };
   };
 
   const addChildNode = useCallback(
     (parentNode: Node) => {
       const newNodeId = getId();
-
-      const childNodes = nodes.filter((node) =>
-        edges.some(
-          (edge) => edge.source === parentNode.id && edge.target === node.id
-        )
-      );
-
-      const newPosition = calculateChildPosition(
-        parentNode.position,
-        childNodes.length,
-        childNodes.length + 1
-      );
+      const newPosition = calculateChildPosition(parentNode.position, nodes);
 
       const newNode: Node = {
         id: newNodeId,
@@ -71,7 +69,7 @@ export function FlowCanvas() {
       setEdges((eds) => eds.concat(newEdge));
       setSelectedNodeId(null);
     },
-    [getId, nodes, edges, setNodes, setEdges]
+    [getId, setNodes, setEdges, nodes]
   );
 
   const onNodeClick = useCallback(
