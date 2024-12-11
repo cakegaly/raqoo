@@ -7,7 +7,7 @@ interface IdContextValue {
 const IdContext = createContext<IdContextValue | undefined>(undefined);
 
 export const IdProvider = ({ children }: { children: ReactNode }) => {
-  const idRef = useRef(2);
+  const idRef = useRef(1);
 
   const getId = () => {
     idRef.current += 1;

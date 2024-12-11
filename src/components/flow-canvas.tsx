@@ -22,18 +22,36 @@ export function FlowCanvas() {
 
   const { project } = useReactFlow();
 
-  const calculateChildPosition = (parentPosition: { x: number; y: number }) => {
-    const offset = 150;
+  const calculateChildPosition = (
+    parentPosition: { x: number; y: number },
+    currentChildIndex: number,
+    totalChildren: number
+  ) => {
+    const xOffset = 200;
+    const ySpacing = 100;
+    const yOffset = (currentChildIndex - (totalChildren - 1) / 2) * ySpacing;
+
     return {
-      x: parentPosition.x + offset,
-      y: parentPosition.y,
+      x: parentPosition.x + xOffset,
+      y: parentPosition.y + yOffset,
     };
   };
 
   const addChildNode = useCallback(
     (parentNode: Node) => {
       const newNodeId = getId();
-      const newPosition = calculateChildPosition(parentNode.position);
+
+      const childNodes = nodes.filter((node) =>
+        edges.some(
+          (edge) => edge.source === parentNode.id && edge.target === node.id
+        )
+      );
+
+      const newPosition = calculateChildPosition(
+        parentNode.position,
+        childNodes.length,
+        childNodes.length + 1
+      );
 
       const newNode: Node = {
         id: newNodeId,
@@ -53,7 +71,7 @@ export function FlowCanvas() {
       setEdges((eds) => eds.concat(newEdge));
       setSelectedNodeId(null);
     },
-    [getId, setNodes, setEdges]
+    [getId, nodes, edges, setNodes, setEdges]
   );
 
   const onNodeClick = useCallback(
